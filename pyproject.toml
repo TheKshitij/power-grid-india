@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "power-grid-india"
+version = "1.0.0"
+description = "OpenEnv-compliant Indian Power Grid Load Balancer — trains AI agents to prevent cascading blackouts across 12 substations using real-world POSOCO demand patterns."
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+keywords = ["openenv", "reinforcement-learning", "power-grid", "india", "agent"]
+dependencies = [
+    "fastapi>=0.104.0",
+    "pydantic>=2.0.0",
+    "uvicorn>=0.24.0",
+    "openai>=1.0.0",
+    "pyyaml>=6.0",
+    "requests>=2.25.0",
+    "openenv-core>=0.2.0",
+]
+
+[project.scripts]
+server = "server.app:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "httpx>=0.24.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["grid_env*", "server*"]
+
+[tool.openenv]
+serve = "server.app:app"
+env_id = "power-grid-india"
+tasks = ["single_substation", "zone_rebalance", "cascade_outage"]
+port = 7860

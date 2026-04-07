@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.venv/
+env/
+venv/
+ENV/
+build/
+dist/
+
+# Env
+.env
+.flaskenv
+
+# OpenEnv / Docker
+uv.lock
+*.log
+docker-output.txt
+validate_log.txt
+validate_out.txt
+validate_v2.txt
+validate_v3.txt
+validate_verbose.txt
+validation_src.txt
+inference_final.txt
+inference_final_standalone.txt
+final_result.txt
+verify_scores.txt
+validate_help.txt
+final_submission_test.txt
+final_validate_debug.txt
+full_debug.txt
+score_report.txt
+short_out.txt
+
+# OS
+.DS_Store
+Thumbs.db

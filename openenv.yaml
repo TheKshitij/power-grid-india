@@ -1,0 +1,127 @@
+name: indian-power-grid-load-balancer
+version: "1.0.0"
+description: >
+  An OpenEnv environment where an AI agent manages a simulated Indian regional
+  electricity grid. The agent must prevent blackouts by issuing load-shedding,
+  rerouting, and restoration actions across 1–12 substations, with realistic
+  demand curves (POSOCO-inspired), stochastic fault injection, and cascading
+  failure propagation on the hard task.
+
+domain: infrastructure
+tags:
+  - power-grid
+  - india
+  - load-balancing
+  - blackout-prevention
+  - multi-step
+  - partial-observability
+
+author: openenv-hackathon-submission
+license: MIT
+
+tasks:
+  - id: single_substation
+    difficulty: easy
+    description: >
+      Manage a single 500 MW substation during evening peak (17–20 h).
+      Prevent overload by shedding load before the station trips.
+      12 steps. No stochastic faults. Good warm-up for the action space.
+    max_steps: 12
+    stations: 1
+    cascade: false
+    success_threshold: 0.25
+
+  - id: zone_rebalance
+    difficulty: medium
+    description: >
+      Manage 4 substations (Delhi NCR ring: Delhi-West, Delhi-East, Gurgaon,
+      Noida) with 7% per-step random fault probability. Agent must rebalance
+      across zones via rerouting while managing load shed budgets.
+    max_steps: 20
+    stations: 4
+    cascade: false
+    success_threshold: 0.25
+
+  - id: cascade_outage
+    difficulty: hard
+    description: >
+      Manage the full 12-node Maharashtra grid (Mumbai–Pune–Nashik ring +
+      feeders). Substations trip and dump load to neighbours after 2 consecutive
+      stressed steps, risking city-wide cascade. Agent must anticipate and
+      pre-emptively shed before the cascade starts.
+    max_steps: 30
+    stations: 12
+    cascade: true
+    success_threshold: 0.25
+
+observation:
+  type: structured
+  format: JSON
+  fields:
+    - name: step
+      type: int
+    - name: max_steps
+      type: int
+    - name: hour
+      type: int
+      description: Simulation hour 0–23
+    - name: substations
+      type: list[SubstationObs]
+      description: Per-station load, capacity, status, neighbors
+    - name: demand_forecast
+      type: list[float]
+      description: Predicted load % per station for the next step
+    - name: active_faults
+      type: list[int]
+      description: Station IDs currently in FAULT state
+    - name: grid_load_pct
+      type: float
+      description: Aggregate load as % of aggregate capacity
+    - name: blackout_risk
+      type: string
+      enum: [low, medium, high, critical]
+    - name: episode_blackouts
+      type: int
+
+action:
+  type: text
+  format: >
+    One of:
+      shed <station_id> <amount_mw>
+      reroute <from_id> <to_id> <amount_mw>
+      restore <station_id>
+      hold
+
+reward:
+  type: dense
+  range: [-0.45, +0.19]   # per step, per station; lower bound includes over-shed penalty
+  description: >
+    Dense shaped reward provides a useful gradient throughout the episode trajectory:
+      +0.07 per stable station (load_pct < 85%) -- rewards sustained safe operation
+      +0.12 × balance_score for grid-level utilisation target (~75%) -- smooth, no cliff
+      -0.08 per stressed station (load_pct >= 87%) -- penalises early warning signs
+      -0.30 per blackout station (load_pct >= 100%) -- large penalty for grid failure
+      -0.20 for shedding load from a NORMAL station (unnecessary shed) -- penalises
+               operators who shed healthy substations rather than stressed ones
+      -0.15 over-shed guard: fires when total shed_mw > 40% of total grid capacity --
+               closes the "shed-all-then-hold" exploit; rewards precision rerouting
+      -0.05 for malformed or out-of-range action commands
+      -0.08 for rerouting between non-adjacent substations
+    Episode terminates early if blackouts >= 3 (or >= 5 for cascade_outage).
+    Final score is normalised to [0.0, 1.0] via _normalise_score().
+
+endpoints:
+  reset: POST /reset
+  step:  POST /step
+  state: GET  /state
+  tasks: GET  /tasks
+  health: GET /health
+
+server:
+  host: 0.0.0.0
+  port: 7860
+  framework: fastapi
+
+docker:
+  base_image: python:3.11-slim
+  expose: 7860
