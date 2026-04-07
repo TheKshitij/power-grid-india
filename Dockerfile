@@ -28,4 +28,4 @@ EXPOSE 7860
 HEALTHCHECK --interval=15s --timeout=5s --start-period=10s --retries=3 \
   CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:7860/health')"
 
-CMD ["python", "server/app.py"]
+CMD ["python", "-m", "server.app"]

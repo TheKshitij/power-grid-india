@@ -1,3 +1,13 @@
+---
+title: Power Grid India Load Balancer
+emoji: ⚡
+colorFrom: blue
+colorTo: green
+sdk: docker
+pinned: false
+app_port: 7860
+---
+
 # Indian Power Grid Load Balancer (OpenEnv)
 
 An OpenEnv-compliant environment for simulating an Indian regional electricity grid. AI agents must manage load balancing through actions like load shedding, rerouting, and restoration to prevent blackouts across variable topologies.
