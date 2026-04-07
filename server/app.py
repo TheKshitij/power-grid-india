@@ -14,6 +14,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import uvicorn
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 
 from grid_env import GridAction, GridEnv, TASK_IDS, _TOPOLOGIES
@@ -124,14 +125,9 @@ async def health():
     return {"status": "ok", "service": "openenv-power-grid"}
 
 
-@app.get("/", summary="API root")
+@app.get("/", include_in_schema=False)
 async def root():
-    return {
-        "name":    "OpenEnv: Indian Power Grid Load Balancer",
-        "version": "1.0.0",
-        "docs":    "/docs",
-        "tasks":   TASK_IDS,
-    }
+    return RedirectResponse(url="/docs")
 
 
 
