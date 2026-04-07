@@ -5,7 +5,11 @@ Runs on 0.0.0.0:7860 (Hugging Face Space compatible).
 """
 
 import os
+import sys
 from typing import Any, Dict, Optional
+
+# Force parent directory into sys.path to resolve 'grid_env' on HF Spaces
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import uvicorn
 from fastapi import FastAPI, HTTPException
@@ -132,9 +136,6 @@ async def root():
 
 
 def main():
-    import sys
-    if os.path.dirname(os.path.dirname(os.path.abspath(__file__))) not in sys.path:
-        sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     port = int(os.getenv("PORT", 7860))
     uvicorn.run("server.app:app", host="0.0.0.0", port=port, reload=False)
 
