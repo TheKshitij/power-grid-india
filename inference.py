@@ -30,6 +30,7 @@ MAX_STEPS    = {
     "single_substation": 12,
     "zone_rebalance":    20,
     "cascade_outage":    30,
+    "renewable_crisis": 25,
 }
 TEMPERATURE  = 0.2  
 MAX_TOKENS   = 60    

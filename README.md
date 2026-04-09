@@ -101,6 +101,8 @@ https://your-space.hf.space/docs   # Hugging Face Space
 
 This allows judges and researchers to manually test `reset`, `step`, `state`, and `render` calls directly from the browser — no CLI required.
 
+- **`GET /render`**: Returns an ASCII grid snapshot. Useful for debugging agent behavior visually without parsing JSON logs.
+
 ## 🐳 Docker Deployment
 
 ```bash
