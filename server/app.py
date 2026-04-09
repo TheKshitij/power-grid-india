@@ -309,7 +309,7 @@ h1{font-size:clamp(1.9rem,4.5vw,3rem);font-weight:800;letter-spacing:-.03em;back
 .sdot.ok{background:var(--green);box-shadow:0 0 8px var(--gglow)}
 .sdot.err{background:var(--red)}
 #stxt{font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--mut)}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:28px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:28px}
 .scard{background:var(--surf);border:1px solid var(--bdr);border-radius:12px;padding:20px;text-align:center}
 .sval{font-size:2rem;font-weight:800;color:var(--blue);letter-spacing:-.03em}
 .slbl{font-size:.72rem;color:var(--mut);text-transform:uppercase;letter-spacing:.07em;margin-top:4px}
@@ -317,11 +317,11 @@ h1{font-size:clamp(1.9rem,4.5vw,3rem);font-weight:800;letter-spacing:-.03em;back
 .tcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-bottom:28px}
 .tc{background:var(--surf);border:1px solid var(--bdr);border-radius:14px;padding:22px;transition:border-color .2s,transform .2s;cursor:default}
 .tc:hover{transform:translateY(-3px)}
-.tc.e:hover{border-color:var(--green)}.tc.m:hover{border-color:var(--yel)}.tc.h:hover{border-color:var(--red)}
+.tc.e:hover{border-color:var(--green)}.tc.m:hover{border-color:var(--yel)}.tc.h:hover{border-color:var(--red)}.tc.x:hover{border-color:#c084fc}
 .th{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
 .tn{font-family:'JetBrains Mono',monospace;font-size:.78rem;font-weight:600}
 .dif{font-size:.68rem;font-weight:700;padding:2px 9px;border-radius:999px}
-.dif.e{background:rgba(34,211,160,.1);color:var(--green)}.dif.m{background:rgba(251,191,36,.1);color:var(--yel)}.dif.h{background:rgba(244,63,94,.1);color:var(--red)}
+.dif.e{background:rgba(34,211,160,.1);color:var(--green)}.dif.m{background:rgba(251,191,36,.1);color:var(--yel)}.dif.h{background:rgba(244,63,94,.1);color:var(--red)}.dif.x{background:rgba(168,85,247,.15);color:#c084fc}
 .td{font-size:.82rem;color:var(--mut);line-height:1.65}
 .tm{margin-top:10px;font-size:.7rem;color:#355570;font-family:'JetBrains Mono',monospace}
 .ep-box{background:var(--surf);border:1px solid var(--bdr);border-radius:14px;padding:18px 22px;margin-bottom:28px}
@@ -348,14 +348,16 @@ h1{font-size:clamp(1.9rem,4.5vw,3rem);font-weight:800;letter-spacing:-.03em;back
   <div class="sbar"><div class="sdot" id="sdot"></div><span id="stxt">Checking server&hellip;</span></div>
   <div class="stats">
     <div class="scard"><div class="sval">12</div><div class="slbl">Substations</div></div>
-    <div class="scard"><div class="sval">3</div><div class="slbl">Task Levels</div></div>
-    <div class="scard"><div class="sval">240</div><div class="slbl">Max Steps</div></div>
+    <div class="scard"><div class="sval">4</div><div class="slbl">Task Levels</div></div>
+    <div class="scard"><div class="sval">265</div><div class="slbl">Max Steps</div></div>
+    <div class="scard"><div class="sval">500<span style="font-size:1rem;font-weight:600">GW</span></div><div class="slbl">2030 RE Target</div></div>
   </div>
   <div class="sec">Tasks</div>
   <div class="tcards">
-    <div class="tc e"><div class="th"><span class="tn">single_substation</span><span class="dif e">Easy</span></div><p class="td">Manage load across a single stressed substation. Prevent overload via shedding and rerouting.</p><div class="tm">1 station &middot; 50 steps &middot; no cascade</div></div>
-    <div class="tc m"><div class="th"><span class="tn">zone_rebalance</span><span class="dif m">Medium</span></div><p class="td">Coordinate load redistribution across a 6-node zone during a demand spike event.</p><div class="tm">6 stations &middot; 120 steps &middot; no cascade</div></div>
-    <div class="tc h"><div class="th"><span class="tn">cascade_outage</span><span class="dif h">Hard</span></div><p class="td">Prevent full grid collapse as faults propagate across all 12 substations simultaneously.</p><div class="tm">12 stations &middot; 240 steps &middot; cascade ON</div></div>
+    <div class="tc e"><div class="th"><span class="tn">single_substation</span><span class="dif e">Easy</span></div><p class="td">Manage load across a single stressed substation. Prevent overload via shedding and rerouting.</p><div class="tm">1 station &middot; 12 steps &middot; no cascade</div></div>
+    <div class="tc m"><div class="th"><span class="tn">zone_rebalance</span><span class="dif m">Medium</span></div><p class="td">Coordinate load redistribution across a 4-node Delhi NCR zone during a demand surge.</p><div class="tm">4 stations &middot; 20 steps &middot; no cascade</div></div>
+    <div class="tc h"><div class="th"><span class="tn">cascade_outage</span><span class="dif h">Hard</span></div><p class="td">Prevent full grid collapse as faults propagate across all 12 Maharashtra substations.</p><div class="tm">12 stations &middot; 30 steps &middot; cascade ON</div></div>
+    <div class="tc x"><div class="th"><span class="tn">renewable_crisis</span><span class="dif x">Expert</span></div><p class="td">Same 12-node Maharashtra grid, but solar generation collapses unpredictably. Manage cascades AND intermittent renewables simultaneously.</p><div class="tm">12 stations &middot; 25 steps &middot; cascade + solar ☀</div></div>
   </div>
   <div class="sec">API Endpoints</div>
   <div class="ep-box">

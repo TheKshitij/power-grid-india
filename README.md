@@ -88,17 +88,18 @@ Dense shaped rewards provide a useful **gradient throughout the episode trajecto
 | `single_substation` | Easy | 1 | Simple peak load management. |
 | `zone_rebalance` | Medium | 4 | Regional balancing across Delhi NCR. |
 | `cascade_outage` | Hard | 12 | Preventing propagation in a complex mesh (Maharashtra grid). |
+| `renewable_crisis` | Expert | 12 | Same mesh, but solar generation collapses unpredictably mid-episode. |
 
-## 📖 API Explorer (Swagger UI)
+## 📖 API Reference (Scalar)
 
-The server automatically generates interactive API documentation via FastAPI. Once running, explore all endpoints at:
+The server provides an interactive, premium API reference powered by [Scalar](https://scalar.com). Once running, explore all endpoints at:
 
 ```
 http://localhost:7860/docs          # local
 https://your-space.hf.space/docs   # Hugging Face Space
 ```
 
-This allows judges and researchers to manually test `reset`, `step`, and `state` calls directly from the browser — no CLI required.
+This allows judges and researchers to manually test `reset`, `step`, `state`, and `render` calls directly from the browser — no CLI required.
 
 ## 🐳 Docker Deployment
 
@@ -130,8 +131,20 @@ curl -X POST http://localhost:7860/reset \
 | `single_substation` | Easy | **0.82** | ✅ |
 | `zone_rebalance` | Medium | **0.85** | ✅ |
 | `cascade_outage` | Hard | **0.45** | ✅ |
+| `renewable_crisis` | Expert | **0.31** | ✅ |
 
 *Model used: Qwen2.5-72B-Instruct via Hugging Face Inference API.*
 
 ---
+
+## 🕯️ Historical Context: The 2012 Northern India Blackout
+
+The `cascade_outage` and `renewable_crisis` tasks are directly inspired by the **30–31 July 2012 Indian grid collapse** — the largest blackout in human history, affecting approximately **620 million people** across 22 states. The failure originated from overloaded transmission lines in the Northern Regional Grid and propagated in minutes as substations tripped and dumped load onto already-stressed neighbours — exactly the cascade mechanic this environment models.
+
+The Central Electricity Regulatory Commission (CERC) report identified the root cause as a failure of *anticipatory* action: operators saw stress signals 40 minutes before the collapse and did not pre-emptively shed load. This environment is designed to train agents to act on those early signals — the `demand_forecast` field in the observation is the analogue of the stress telemetry operators had available but did not act on in time.
+
+The `renewable_crisis` task extends this with a forward-looking dimension: India has committed to **500 GW of renewable capacity by 2030**. Solar intermittency on a stressed grid creates the same anticipatory challenge, now with less warning time.
+
+---
+
 *Created for the OpenEnv Hackathon Submission.*
