@@ -193,11 +193,11 @@ async def scalar_docs():
   #topbar .back:hover { color: #e2edf8; border-color: #5a7a9a; }
 
   /* Let Scalar fill the rest of the viewport */
-  #scalar-wrap { height: calc(100vh - 47px); overflow: hidden; }
+  #scalar-wrap { height: calc(100vh - 47px); overflow: hidden; background: #050d1a; }
   #scalar-wrap > * { height: 100%; }
 </style>
 </head>
-<body>
+<body style="background: #050d1a;">
 
 <!-- Branded top-bar (only change visible to users) -->
 <div id="topbar">
@@ -210,17 +210,17 @@ async def scalar_docs():
 
 <!-- Scalar renders here -->
 <div id="scalar-wrap">
-  <api-reference
-    data-url="openapi.json"
-    configuration='{
-      "theme": "moon",
-      "darkMode": true,
-      "forceDarkModeState": "dark",
-      "hideDarkModeToggle": true,
-      "defaultOpenAllTags": true,
-      "customCss": ":root { --scalar-font: Inter, system-ui, sans-serif; --scalar-font-code: JetBrains Mono, monospace; } .dark-mode { background: #050d1a !important; }"
-    }'>
-  </api-reference>
+  <script id="api-reference" data-url="../openapi.json"></script>
+  <script>
+    document.getElementById('api-reference').dataset.configuration = JSON.stringify({
+      theme: 'moon',
+      darkMode: true,
+      forceDarkModeState: 'dark',
+      hideDarkModeToggle: true,
+      defaultOpenAllTags: true,
+      customCss: ':root { --scalar-font: Inter, system-ui, sans-serif; --scalar-font-code: JetBrains Mono, monospace; } .dark-mode { background: #050d1a !important; }'
+    });
+  </script>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
