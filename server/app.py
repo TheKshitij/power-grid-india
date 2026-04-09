@@ -211,14 +211,14 @@ async def scalar_docs():
 <!-- Scalar renders here -->
 <div id="scalar-wrap">
   <api-reference
-    data-url="/openapi.json"
+    data-url="openapi.json"
     configuration='{
       "theme": "moon",
       "darkMode": true,
       "forceDarkModeState": "dark",
       "hideDarkModeToggle": true,
       "defaultOpenAllTags": true,
-      "customCss": ":root { --scalar-font: Inter, system-ui, sans-serif; --scalar-font-code: JetBrains Mono, monospace; }\n.dark-mode { background: #050d1a !important; }"
+      "customCss": ":root { --scalar-font: Inter, system-ui, sans-serif; --scalar-font-code: JetBrains Mono, monospace; } .dark-mode { background: #050d1a !important; }"
     }'>
   </api-reference>
 </div>
