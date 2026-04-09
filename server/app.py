@@ -91,20 +91,71 @@ async def tasks():
         "tasks": [
             {
                 "id":          tid,
-                "difficulty":  ["easy", "medium", "hard"][i],
+                "difficulty":  ["easy", "medium", "hard", "expert"][i],
                 "description": meta["description"],
                 "stations":    len(meta["stations"]),
                 "max_steps":   meta["max_steps"],
                 "cascade":     meta["cascade"],
+                "renewable_intermittency": meta.get("renewable_intermittency", False),
             }
             for i, (tid, meta) in enumerate(_TOPOLOGIES.items())
         ]
     }
 
 
+@app.get("/tasks/{task_id}", summary="Get metadata for a single task")
+async def task_detail(task_id: str):
+    if task_id not in TASK_IDS:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Task '{task_id}' not found. Valid: {TASK_IDS}",
+        )
+    difficulties = ["easy", "medium", "hard", "expert"]
+    idx  = TASK_IDS.index(task_id)
+    meta = _TOPOLOGIES[task_id]
+    return {
+        "id":          task_id,
+        "difficulty":  difficulties[idx],
+        "description": meta["description"],
+        "stations":    len(meta["stations"]),
+        "max_steps":   meta["max_steps"],
+        "cascade":     meta["cascade"],
+        "renewable_intermittency": meta.get("renewable_intermittency", False),
+    }
+
+
 @app.get("/health", summary="Liveness probe")
 async def health():
     return {"status": "ok", "service": "openenv-power-grid"}
+
+
+@app.get("/render", summary="ASCII grid snapshot of current state")
+async def render():
+    """Returns a human-readable ASCII diagram of the current grid state."""
+    if _env is None:
+        raise HTTPException(status_code=400, detail="No active episode. POST /reset first.")
+    ep  = _env._ep
+    obs = _env._make_obs()
+
+    lines = [
+        f"\u2554\u2550\u2550 GRID STATE  step={obs.step}/{obs.max_steps}  time={obs.time_label}  risk={obs.blackout_risk.upper()} \u2550\u2550\u2557",
+    ]
+    for s in obs.substations:
+        filled = int(s.load_pct / 10)
+        bar    = "\u2588" * filled + "\u2591" * (10 - filled)
+        icon   = "\u2716" if s.status == "fault" else ("\u26a0" if s.status == "stressed" else "\u2713")
+        shed   = f" [shed={s.shed_mw:.0f}MW]" if s.shed_mw > 0 else ""
+        lines.append(
+            f"  {icon} [{s.id:>2}] {s.name:<16} {bar} {s.load_pct:5.1f}%  "
+            f"({s.load_mw:.0f}/{s.capacity_mw:.0f}MW){shed}"
+        )
+    lines += [
+        f"  Grid: {obs.grid_load_pct:.1f}%  Blackouts: {obs.episode_blackouts}  "
+        f"Shed: {obs.total_shed_mw:.0f}MW",
+        f"  Faults: {obs.active_faults if obs.active_faults else 'none'}",
+        f"\u255a{'\u2550' * 60}\u255d",
+    ]
+    return {"render": "\n".join(lines)}
 
 
 @app.get("/", include_in_schema=False)

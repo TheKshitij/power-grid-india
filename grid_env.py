@@ -114,6 +114,27 @@ _TOPOLOGIES: Dict[str, Dict[str, Any]] = {
         "fault_prob":  0.10,
         "cascade":     True,
     },
+    "renewable_crisis": {
+        "description": "12-node Maharashtra grid with solar intermittency and cascading faults — expert",
+        "stations": [
+            {"id":  0, "name": "Mumbai-Central", "capacity": 1200.0, "neighbors": [1, 4]},
+            {"id":  1, "name": "Thane",          "capacity":  900.0, "neighbors": [0, 2, 5]},
+            {"id":  2, "name": "Pune",           "capacity":  800.0, "neighbors": [1, 3, 6]},
+            {"id":  3, "name": "Nashik",         "capacity":  600.0, "neighbors": [2, 7]},
+            {"id":  4, "name": "Navi-Mumbai",    "capacity":  700.0, "neighbors": [0, 5, 8]},
+            {"id":  5, "name": "Raigad",         "capacity":  500.0, "neighbors": [1, 4, 9]},
+            {"id":  6, "name": "Satara",         "capacity":  450.0, "neighbors": [2, 7, 10]},
+            {"id":  7, "name": "Solapur",        "capacity":  550.0, "neighbors": [3, 6, 11]},
+            {"id":  8, "name": "Panvel",         "capacity":  400.0, "neighbors": [4, 9]},
+            {"id":  9, "name": "Alibag",         "capacity":  350.0, "neighbors": [5, 8]},
+            {"id": 10, "name": "Kolhapur",       "capacity":  500.0, "neighbors": [6, 11]},
+            {"id": 11, "name": "Sangli",         "capacity":  450.0, "neighbors": [7, 10]},
+        ],
+        "max_steps":   25,
+        "fault_prob":  0.10,
+        "cascade":     True,
+        "renewable_intermittency": True,
+    },
 }
 
 TASK_IDS = list(_TOPOLOGIES.keys())
@@ -167,9 +188,12 @@ class GridEnv:
         elif self.task == "zone_rebalance":
             hour   = self._rng.randint(16, 18)   # pre-peak, demand rising
             lo, hi = 0.82, 0.93
-        else:   # cascade_outage
+        elif self.task == "cascade_outage":
             hour   = self._rng.randint(15, 17)   # early afternoon, time to plan
             lo, hi = 0.80, 0.92
+        else:   # renewable_crisis — starts mid-morning when solar is ramping
+            hour   = self._rng.randint(9, 12)
+            lo, hi = 0.78, 0.90
         stations = []
         for st_def in topo["stations"]:
             mult = _demand_mult(hour, st_def["id"])
@@ -186,17 +210,18 @@ class GridEnv:
                 "status":         StationStatus.NORMAL,
             })
         self._ep = {
-            "task":        self.task,
-            "step":        0,
-            "max_steps":   topo["max_steps"],
-            "hour":        hour,
-            "stations":    stations,
-            "blackouts":   0,
-            "total_reward":0.0,
-            "fault_prob":  topo["fault_prob"],
-            "cascade":     topo["cascade"],
-            "done":        False,
-            "last_msg":    "Episode started. Grid initialised at evening peak.",
+            "task":                    self.task,
+            "step":                    0,
+            "max_steps":               topo["max_steps"],
+            "hour":                    hour,
+            "stations":                stations,
+            "blackouts":               0,
+            "total_reward":            0.0,
+            "fault_prob":              topo["fault_prob"],
+            "cascade":                 topo["cascade"],
+            "renewable_intermittency": topo.get("renewable_intermittency", False),
+            "done":                    False,
+            "last_msg":                "Episode started. Grid initialised.",
         }
         return self._make_obs()
 
@@ -225,7 +250,7 @@ class GridEnv:
         ep["total_reward"] += step_reward
 
         # Episode terminates: max steps OR too many blackouts
-        blackout_limit = 5 if ep["task"] == "cascade_outage" else 3
+        blackout_limit = 5 if ep["task"] in ("cascade_outage", "renewable_crisis") else 3
         done = (ep["step"] >= ep["max_steps"]) or (ep["blackouts"] >= blackout_limit)
         ep["done"] = done
 
@@ -407,6 +432,19 @@ class GridEnv:
             if st["status"] == StationStatus.FAULT:
                 continue
             target = st["capacity"] * _demand_mult(hour, st["id"])
+
+            # Renewable intermittency: solar generation can collapse suddenly.
+            # Between 06-18h, solar offsets some load. A 15% chance per step
+            # simulates cloud cover / ramp-down, causing load to spike back up.
+            if ep.get("renewable_intermittency", False) and 6 <= hour <= 18:
+                solar_offset = st["capacity"] * 0.13 * math.sin(
+                    (hour - 6) * math.pi / 12
+                )
+                if self._rng.random() < 0.15:
+                    # Sudden solar drop — load surges back
+                    solar_offset *= 0.30
+                target += solar_offset * 0.40
+
             # Exponential smoothing + small noise
             st["load"] = round(
                 st["load"] * 0.65 + target * 0.35 + self._rng.uniform(-8, 8), 1
@@ -489,15 +527,16 @@ class GridEnv:
 
     def _normalise_score(self) -> float:
         """
-        Normalise episode total_reward to [0, 1].
-        Max theoretical reward: all stations stable + balance bonus each step.
+        Normalise episode total_reward to [0, 1] with deterministic
+        min/max bounds derived from the task parameters.
         """
         ep        = self._ep
         n         = len(ep["stations"])
         max_steps = ep["max_steps"]
-        # Upper bound: n * 0.07 stable + 0.12 balance per step
-        max_reward = max_steps * (n * 0.07 + 0.12)
-        # Lower bound: 3 blackouts terminates early, capped at -0.30 * 3
+        # Upper bound: every station stable + full balance bonus every step
+        max_r = max_steps * (n * 0.07 + 0.12)
+        # Lower bound: every station blackout + over-shed penalty every step
+        min_r = max_steps * (n * -0.30 + -0.15)
         raw   = ep["total_reward"]
-        score = (raw - (-max_reward * 0.5)) / (max_reward * 1.5)
-        return max(0.0, min(1.0, score))
+        score = (raw - min_r) / (max_r - min_r)
+        return round(max(0.0, min(1.0, score)), 4)

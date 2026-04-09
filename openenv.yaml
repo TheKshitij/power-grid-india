@@ -54,6 +54,22 @@ tasks:
     cascade: true
     success_threshold: 0.25
 
+  - id: renewable_crisis
+    difficulty: expert
+    description: >
+      Same 12-node Maharashtra grid as cascade_outage, but with solar
+      intermittency enabled. Between 06–18h, solar generation can collapse
+      suddenly (15% chance per step), causing load to spike on affected
+      substations without warning. The agent must manage cascading faults
+      AND unpredictable renewable drops simultaneously. Inspired by the
+      real challenge India faces integrating 500 GW of renewable capacity
+      by 2030 into an already stressed transmission network.
+    max_steps: 25
+    stations: 12
+    cascade: true
+    renewable_intermittency: true
+    success_threshold: 0.20
+
 observation:
   type: structured
   format: JSON
