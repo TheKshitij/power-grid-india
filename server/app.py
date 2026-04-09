@@ -149,11 +149,12 @@ async def render():
             f"  {icon} [{s.id:>2}] {s.name:<16} {bar} {s.load_pct:5.1f}%  "
             f"({s.load_mw:.0f}/{s.capacity_mw:.0f}MW){shed}"
         )
+    _sep = "═" * 60
     lines += [
         f"  Grid: {obs.grid_load_pct:.1f}%  Blackouts: {obs.episode_blackouts}  "
         f"Shed: {obs.total_shed_mw:.0f}MW",
         f"  Faults: {obs.active_faults if obs.active_faults else 'none'}",
-        f"\u255a{'\u2550' * 60}\u255d",
+        f"╚{_sep}╝",
     ]
     return {"render": "\n".join(lines)}
 
