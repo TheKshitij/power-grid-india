@@ -36,5 +36,5 @@ include = ["grid_env*", "server*"]
 [tool.openenv]
 serve = "server.app:app"
 env_id = "power-grid-india"
-tasks = ["single_substation", "zone_rebalance", "cascade_outage"]
+tasks = ["single_substation", "zone_rebalance", "cascade_outage", "renewable_crisis"]
 port = 7860
