@@ -26,8 +26,10 @@ app = FastAPI(
     description=(
         "An OpenEnv-compliant environment where an AI agent manages a "
         "simulated Indian regional electricity grid, preventing blackouts "
-        "via load shedding and rerouting. Three tasks: easy → medium → hard."
+        "via load shedding and rerouting. Three tasks: easy \u2192 medium \u2192 hard."
     ),
+    docs_url=None,    # Disable default Swagger UI — we use Scalar instead
+    redoc_url=None,   # Disable default ReDoc
 )
 app.add_middleware(
     CORSMiddleware,
@@ -108,6 +110,124 @@ async def health():
 @app.get("/", include_in_schema=False)
 async def root():
     return RedirectResponse(url="/web")
+
+
+@app.get("/docs", include_in_schema=False)
+async def scalar_docs():
+    """Premium Scalar API reference — replaces default Swagger UI."""
+    HTML = """<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>API Reference &mdash; Indian Power Grid</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Match home-page typography globally */
+  :root {
+    --scalar-font: 'Inter', system-ui, sans-serif;
+    --scalar-font-code: 'JetBrains Mono', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  /* Slim branded top-bar */
+  #topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 24px;
+    background: #050d1a;
+    border-bottom: 1px solid #1a2d45;
+    position: sticky;
+    top: 0;
+    z-index: 9999;
+  }
+  #topbar .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+  }
+  #topbar .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(59,130,246,.12);
+    border: 1px solid rgba(59,130,246,.3);
+    color: #3b82f6;
+    border-radius: 999px;
+    padding: 3px 12px;
+    font-size: .68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  #topbar .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #22d3a0;
+    animation: pd 2s ease-in-out infinite;
+  }
+  @keyframes pd {
+    0%,100%{opacity:1;transform:scale(1)}
+    50%{opacity:.4;transform:scale(.75)}
+  }
+  #topbar .title {
+    font-family: 'Inter', sans-serif;
+    font-size: .9rem;
+    font-weight: 700;
+    color: #e2edf8;
+  }
+  #topbar .back {
+    font-family: 'Inter', sans-serif;
+    font-size: .8rem;
+    color: #5a7a9a;
+    text-decoration: none;
+    border: 1px solid #1a2d45;
+    padding: 5px 14px;
+    border-radius: 8px;
+    transition: all .2s;
+  }
+  #topbar .back:hover { color: #e2edf8; border-color: #5a7a9a; }
+
+  /* Let Scalar fill the rest of the viewport */
+  #scalar-wrap { height: calc(100vh - 47px); overflow: hidden; }
+  #scalar-wrap > * { height: 100%; }
+</style>
+</head>
+<body>
+
+<!-- Branded top-bar (only change visible to users) -->
+<div id="topbar">
+  <a href="/web" class="brand">
+    <div class="pill"><div class="dot"></div>OpenEnv</div>
+    <span class="title">Indian Power Grid &mdash; API Reference</span>
+  </a>
+  <a href="/web" class="back">&larr; Back to Dashboard</a>
+</div>
+
+<!-- Scalar renders here -->
+<div id="scalar-wrap">
+  <api-reference
+    data-url="/openapi.json"
+    configuration='{
+      "theme": "moon",
+      "darkMode": true,
+      "forceDarkModeState": "dark",
+      "hideDarkModeToggle": true,
+      "defaultOpenAllTags": true,
+      "customCss": ":root { --scalar-font: Inter, system-ui, sans-serif; --scalar-font-code: JetBrains Mono, monospace; }\n.dark-mode { background: #050d1a !important; }"
+    }'>
+  </api-reference>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
+</body>
+</html>"""
+    return HTMLResponse(content=HTML)
+
 
 
 @app.get("/web", include_in_schema=False)
